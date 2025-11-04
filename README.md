@@ -6,7 +6,7 @@ You have to implement CRUD pages for managing banners for a CMS system.
 It's base is implemented using React and JoyUI.
 
 Please provide a link to a public github repository.
-Time to complete is 4 days.
+Time to complete is 7 days.
 
 #### Clone this repository and implement the following functionalities:
 1. Implement banner creation page.
