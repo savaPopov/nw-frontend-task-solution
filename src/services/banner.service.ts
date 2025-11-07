@@ -129,9 +129,6 @@ class BannerService {
     }
 
 
-    async createBanner(banner: BannerDto) {
-        this.saveBanners([banner, ...this.listBanners()])
-    }
 
     async getBanners(page: PageRequest) {
         //defaults
@@ -168,12 +165,56 @@ class BannerService {
         } as PageResponse<BannerDto>
     }
 
+    private getNextId(): string {
+        const banners = this.listBanners()
+
+        if (banners.length === 0) {
+            return '1'
+        }
+
+        const numericIds = banners
+            .map(banner => banner.id)
+            .filter(id => id !== undefined)
+            .map(id => parseInt(id!))
+            .filter(id => !isNaN(id))
+
+        if (numericIds.length === 0) {
+            return '1'
+        }
+
+        const maxId = Math.max(...numericIds)
+        return (maxId + 1).toString()
+    }
+
+    async createBanner(banner: BannerDto) {
+        const banners = this.listBanners()
+        const newBanner = {
+            ...banner,
+            id: this.getNextId()
+        }
+        this.saveBanners([newBanner, ...banners])
+        return newBanner
+    }
+
+
     async getBanner(id: string) {
         return this.listBanners().find(banner => banner.id === id)
     }
 
     async updateBanner(id: string, banner: BannerDto) {
-        //todo update banner logic
+        const banners = this.listBanners()
+        const index = banners.findIndex(b => b.id === id)
+
+        if (index === -1) {
+            throw new Error(`Banner with id ${id} not found`)
+        }
+
+        banners[index] = {
+            ...banner,
+            id: id
+        }
+        this.saveBanners(banners)
+        return banners[index]
     }
 
     async deleteBanner(id: string) {
@@ -187,6 +228,8 @@ class BannerService {
     private saveBanners(banners: BannerDto[]) {
         localStorage.setItem(this.BANNER_KEY, JSON.stringify(banners))
     }
+
+
 }
 
 export default new BannerService()

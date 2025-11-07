@@ -7,7 +7,7 @@ export default function Image(props: {
 }) {
     const [isLoaded, setIsLoaded] = useState(false)
     const [imageSrc, setImageSrc] = useState<string>()
-
+//TODO add error handling
     useEffect(() => {
         if (props.url) {
             ImageService.fetchImage(props.url)

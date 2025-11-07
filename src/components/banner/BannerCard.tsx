@@ -11,13 +11,16 @@ export default function BannerCard(props: { banner?: BannerDto; delete?: () => v
 
     return (
         <Grid
-            xl={3}
-            lg={4}
-            md={6}
-            sm={6}
+            xl={12}
+            lg={12}
+            md={12}
+            sm={12}
             xs={12}
         >
-            <Card sx={{ height: 400 }}>
+            <Card sx={{
+                height: 400,
+                // width: '100%'
+            }}>
                 <CardOverflow>
                     <Image url={props.banner?.imageUrl} />
                 </CardOverflow>
@@ -57,11 +60,11 @@ export default function BannerCard(props: { banner?: BannerDto; delete?: () => v
                     >
                         <Delete />
                     </IconButton>
-                    <Button
+                    <Button 
                         variant="solid"
                         type={'button'}
                         size="md"
-                        onClick={() => navigate({ pathname: `/landmarks/${props.banner!.id}` })}
+                        onClick={() => navigate({ pathname: `/banners/edit/${props.banner!.id}` })}
                         color="primary"
                         sx={{ width: '75%', alignSelf: 'center', fontWeight: 600 }}
                     >
@@ -69,6 +72,6 @@ export default function BannerCard(props: { banner?: BannerDto; delete?: () => v
                     </Button>
                 </CardActions>
             </Card>
-        </Grid>
+         </Grid>
     )
 }
