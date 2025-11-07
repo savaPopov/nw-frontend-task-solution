@@ -9,10 +9,11 @@ export default function ScrollableCards<T>(props: {
     mapCard: (value: T, deleteItem: (id: string) => void) => React.JSX.Element
     skeletonMap: (_: any, index: number) => React.JSX.Element
 }) {
-    const initial = [...Array(12)].map(props.skeletonMap)
+    const initial = [...Array(6)].map(props.skeletonMap)
     const [cards, setCards] = useState<React.JSX.Element[]>(initial)
     const [page, setPage] = useState<number>(0)
     const [hasMore, setHasMore] = useState<boolean>(true)
+    const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true)
 
     const deleteItem = useCallback((id: string) => {
         setCards((prevCardsState) => {
@@ -27,21 +28,40 @@ export default function ScrollableCards<T>(props: {
     }, [])
 
     const loadBanners = useCallback(async () => {
-        const newCards = await props.loadMore({ page, pageSize: 12 })
+
+        const newCards = await props.loadMore({ page, pageSize: 6 })
         if (!newCards) {
+            setHasMore(false)
             return
         }
-        let currentCards = [...cards]
-        setPage(newCards.pageNumber)
+        // + change to next page
+        setPage(newCards.pageNumber + 1)
+        console.log(`Total Pages ${page}`)
+        // check if there is next page
         setHasMore(newCards.maxPageNumber > newCards.pageNumber)
+        console.log(`has more pages ? ${newCards.maxPageNumber > newCards.pageNumber}`)
+
+        // make data to elements
         const newElements = newCards.content.map((value) => props.mapCard(value, deleteItem))
-        setCards([...currentCards, ...newElements])
+
+        setCards((prevCards) => {
+
+            if (isInitialLoad) {
+                // fist render replace skeletons with real data
+                setIsInitialLoad(false)
+                return newElements
+            }
+
+            // next loads add to existing cards
+            return [...prevCards, ...newElements]
+        })
+        
     }, [cards, page, deleteItem, props])
 
     useEffect(() => {
-        if (page != 0) return
+
         loadBanners().catch((reason) => console.error(reason))
-    }, [loadBanners, page])
+    }, [])
 
     const loadMore = () => {
         loadBanners().catch((reason) => console.error(reason))
