@@ -3,18 +3,147 @@ import { BannerDto } from './dto/banner.dto.ts'
 import { PageResponse } from './dto/page.response.ts'
 
 class BannerService {
+
+
     private readonly BANNER_KEY = 'banners'
+
+
+    constructor() {
+        this.initializeSampleData()
+    }
+
+    private initializeSampleData() {
+        const existingBanners = this.listBanners()
+        if (existingBanners.length === 0) {
+            console.log('Adding sample banners to localStorage...')
+            const sampleBanners: BannerDto[] = [
+                {
+                    id: '1',
+                    link: '/summer-sale',
+                    imageUrl: 'https://picsum.photos/600/300?1'
+                },
+                {
+                    id: '2',
+                    link: '/winter-collection',
+                    imageUrl: 'https://picsum.photos/600/300?2'
+                },
+                {
+                    id: '3',
+                    link: '/clearance',
+                    imageUrl: 'https://picsum.photos/600/300?3'
+                },
+                {
+                    id: '4',
+                    link: '/new-arrivals',
+                    imageUrl: 'https://picsum.photos/600/300?4'
+                },
+                {
+                    id: '5',
+                    link: '/special-offer',
+                    imageUrl: 'https://picsum.photos/600/300?5'
+                },
+                {
+                    id: '6',
+                    link: '/featured',
+                    imageUrl: 'https://picsum.photos/600/300?6'
+                },
+                {
+                    id: '7',
+                    link: '/featured',
+                    imageUrl: 'https://picsum.photos/600/300?6'
+                },
+                {
+                    id: '8',
+                    link: '/featured',
+                    imageUrl: 'https://picsum.photos/600/300?6'
+                },
+                {
+                    id: '9',
+                    link: '/featured',
+                    imageUrl: 'https://picsum.photos/600/300?6'
+                },
+                {
+                    id: '10',
+                    link: '/featured',
+                    imageUrl: 'https://picsum.photos/600/300?6'
+                },
+                {
+                    id: '11',
+                    link: '/featured',
+                    imageUrl: 'https://picsum.photos/600/300?6'
+                },
+                {
+                    id: '12',
+                    link: '/featured',
+                    imageUrl: 'https://picsum.photos/600/300?6'
+                },
+                {
+                    id: '13',
+                    link: '/featured',
+                    imageUrl: 'https://picsum.photos/600/300?6'
+                },
+                {
+                    id: '14',
+                    link: '/featured',
+                    imageUrl: 'https://picsum.photos/600/300?6'
+                },
+                {
+                    id: '15',
+                    link: '/featured',
+                    imageUrl: 'https://picsum.photos/600/300?6'
+                },
+                {
+                    id: '16',
+                    link: '/featured',
+                    imageUrl: 'https://picsum.photos/600/300?6'
+                },
+                {
+                    id: '17',
+                    link: '/summer-sale',
+                    imageUrl: 'https://picsum.photos/600/300?1'
+                },
+                {
+                    id: '18',
+                    link: '/summer-sale',
+                    imageUrl: 'https://picsum.photos/600/300?1'
+                },
+                {
+                    id: '19',
+                    link: '/summer-sale',
+                    imageUrl: 'https://picsum.photos/600/300?1'
+                },
+                {
+                    id: '20',
+                    link: '/summer-sale',
+                    imageUrl: 'https://picsum.photos/600/300?1'
+                },
+                {
+                    id: '21',
+                    link: '/summer-sale',
+                    imageUrl: 'https://picsum.photos/600/300?1'
+                },
+
+            ]
+            this.saveBanners(sampleBanners)
+        }
+    }
+
 
     async createBanner(banner: BannerDto) {
         this.saveBanners([banner, ...this.listBanners()])
     }
 
     async getBanners(page: PageRequest) {
+        //defaults
         if (!page.page) page.page = 0
-        if (!page.pageSize) page.pageSize = 12
+        if (!page.pageSize) page.pageSize = 6
+
         let banners = this.listBanners()
+        console.log('bannerservice returning banners:', banners)
+
         const total = banners.length
-        banners = banners.slice(page.page * page.pageSize, (page.page + 1) * page.pageSize)
+
+        // if Sorting do before slicing 
         if (page.orderBy) {
             banners = banners.sort((a, b) => {
                 const valueA = (Object.entries(a).find(value => value[0] === page.orderBy) || [])[1]
@@ -28,11 +157,14 @@ class BannerService {
             }
         }
 
+        banners = banners.slice(page.page * page.pageSize, (page.page + 1) * page.pageSize)
+
+
         return {
             content: banners,
             pageSize: page.pageSize,
             pageNumber: page.page,
-            maxPageNumber: total / page.pageSize,
+            maxPageNumber: Math.floor(total / page.pageSize),
         } as PageResponse<BannerDto>
     }
 
