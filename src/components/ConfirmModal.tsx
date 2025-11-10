@@ -9,6 +9,7 @@ export default function ConfirmModal(props: {
     onClose: () => void
     confirm?: () => void
     action: string
+    confirmButtonText: string
 }) {
     return (
         <Modal
@@ -36,7 +37,7 @@ export default function ConfirmModal(props: {
                             }
                         }}
                     >
-                        Delete
+                        {props.confirmButtonText}
                     </Button>
                     <Button
                         variant="plain"

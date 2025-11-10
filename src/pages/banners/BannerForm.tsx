@@ -7,6 +7,7 @@ import BannerService from '../../services/banner.service.ts'
 import { useForm } from '../../hooks/useForm.ts'
 import { useBannerFormValidation } from '../../hooks/useBannerFormValidation.ts'
 import { useToast } from '../../context/toast/toast.context.tsx'
+import ConfirmModal from '../../components/ConfirmModal.tsx'
 
 
 export default function BannerForm() {
@@ -16,6 +17,9 @@ export default function BannerForm() {
     const isEditing = !!id
     const [submitError, setSubmitError] = useState('')
     const { showToast } = useToast();
+    const [modalOpen, setModalOpen] = useState(false)
+    const [formDataToSubmit, setFormDataToSubmit] = useState<BannerDto | null>(null)
+
     const initialValues: BannerDto = {
         link: '',
         imageUrl: ''
@@ -47,123 +51,155 @@ export default function BannerForm() {
     }, [isEditing, id])
 
     async function handleSubmit(formData: BannerDto) {
-        console.log(formData)
+        console.log('Form data to submit:', formData)
 
-        const formErrors = markAllTouched();
+        const formErrors = markAllTouched()
         if (Object.values(formErrors).some(error => error)) {
-            return;
+            showToast('Please fix the form errors before submitting', 'error')
+            return
         }
 
+
+        if (isEditing) {
+            setFormDataToSubmit(formData)
+            setModalOpen(true)
+        } else {
+
+            await submitFormData(formData)
+        }
+    }
+
+    async function submitFormData(formData: BannerDto) {
         setLoading(true)
         setSubmitError('')
 
         try {
-
             if (isEditing) {
-                const result = await BannerService.updateBanner(id, formData)
-
-                showToast(`Banner updated successfully`, 'success')
+                await BannerService.updateBanner(id!, formData)
+                showToast('Banner updated successfully', 'success')
                 navigate('/banners')
             } else {
-                const result = await BannerService.createBanner(formData);
-                showToast(`Banner created successfully`, 'success')
-                navigate("/banners");
+                await BannerService.createBanner(formData)
+                showToast('Banner created successfully', 'success')
+                navigate("/banners")
             }
-
         } catch (err) {
-            console.error('Error creating banner:', err);
-            setSubmitError('Failed to load banner data')
-
+            console.error('Error saving banner:', err)
             const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
-            showToast(`There was an error: ${errorMessage}`, 'error')
+            setSubmitError(`Failed to save banner: ${errorMessage}`)
+            showToast(`Failed to save banner: ${errorMessage}`, 'error')
         } finally {
             setLoading(false)
         }
     }
 
+    const handleConfirm = async () => {
+        if (formDataToSubmit) {
+            await submitFormData(formDataToSubmit)
+        }
+        setModalOpen(false)
+        setFormDataToSubmit(null)
+    }
+
+    const handleModalClose = () => {
+        setModalOpen(false)
+        setFormDataToSubmit(null)
+    }
+
 
     return (
-        <Grid container spacing={2}>
-            <Grid xs={12}>
-                <Sheet sx={{ maxWidth: 600, mx: 'auto', p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Typography level="h2">
-                        {isEditing ? 'Edit Banner' : 'Create New Banner'}
-                    </Typography>
+        <>
+            <Grid container spacing={2}>
+                <Grid xs={12}>
+                    <Sheet sx={{ maxWidth: 600, mx: 'auto', p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <Typography level="h2">
+                            {isEditing ? 'Edit Banner' : 'Create New Banner'}
+                        </Typography>
 
-                    {submitError && (
-                        <Alert color="danger" variant="soft">
-                            {submitError}
-                        </Alert>
-                    )}
+                        {submitError && (
+                            <Alert color="danger" variant="soft">
+                                {submitError}
+                            </Alert>
+                        )}
 
-                    {/* <Alert color="danger" variant="soft">
+                        {/* <Alert color="danger" variant="soft">
                     Failed to load banner data
                     </Alert> */}
 
-                    <Card>
-                        <form onSubmit={submitHandler}>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                                <FormControl required>
-                                    <FormLabel>Link URL</FormLabel>
-                                    <Input
-                                        id="link"
-                                        name="link"
-                                        type="url"
-                                        placeholder="https://example.com/path"
-                                        value={values.link}
-                                        onChange={changeHandler}
-                                        onBlur={handleBlur}
-                                        disabled={loading}
-                                        error={touched.link && !!errors.link}
-                                        required
-                                    />
+                        <Card>
+                            <form onSubmit={submitHandler}>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                    <FormControl required>
+                                        <FormLabel>Link URL</FormLabel>
+                                        <Input
+                                            id="link"
+                                            name="link"
+                                            type="url"
+                                            placeholder="https://example.com/path"
+                                            value={values.link}
+                                            onChange={changeHandler}
+                                            onBlur={handleBlur}
+                                            disabled={loading}
+                                            error={touched.link && !!errors.link}
+                                            required
+                                        />
 
-                                    {touched.link && errors.link && (
-                                        <FormHelperText>
-                                            {errors.link}
-                                        </FormHelperText>
-                                    )}
+                                        {touched.link && errors.link && (
+                                            <FormHelperText>
+                                                {errors.link}
+                                            </FormHelperText>
+                                        )}
 
-                                </FormControl>
-
-
-                                <FormControl required>
-                                    <FormLabel>Image URL</FormLabel>
-                                    <Input
-                                        id="imageUrl"
-                                        name="imageUrl"
-                                        type="url"
-                                        placeholder="https://picsum.photos/600/300"
-                                        value={values.imageUrl}
-                                        onChange={changeHandler}
-                                        onBlur={handleBlur}
-                                        disabled={loading}
-                                        error={touched.imageUrl && !!errors.imageUrl}
-                                        required
-                                    />
-
-                                    {touched.imageUrl && errors.imageUrl && (
-                                        <FormHelperText>
-                                            {errors.imageUrl}
-                                        </FormHelperText>
-                                    )}
-
-                                </FormControl>
+                                    </FormControl>
 
 
-                                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                                    <Button variant="outlined" onClick={() => navigate('/banners')} disabled={loading}>
-                                        Cancel
-                                    </Button>
-                                    <Button type="submit" loading={loading} disabled={!isFormValid() || loading} >
-                                        {isEditing ? 'Update Banner' : 'Create Banner'}
-                                    </Button>
+                                    <FormControl required>
+                                        <FormLabel>Image URL</FormLabel>
+                                        <Input
+                                            id="imageUrl"
+                                            name="imageUrl"
+                                            type="url"
+                                            placeholder="https://picsum.photos/600/300"
+                                            value={values.imageUrl}
+                                            onChange={changeHandler}
+                                            onBlur={handleBlur}
+                                            disabled={loading}
+                                            error={touched.imageUrl && !!errors.imageUrl}
+                                            required
+                                        />
+
+                                        {touched.imageUrl && errors.imageUrl && (
+                                            <FormHelperText>
+                                                {errors.imageUrl}
+                                            </FormHelperText>
+                                        )}
+
+                                    </FormControl>
+
+
+                                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                                        <Button variant="outlined" onClick={() => navigate('/banners')} disabled={loading}>
+                                            Cancel
+                                        </Button>
+                                        <Button type="submit" loading={loading} disabled={!isFormValid() || loading} >
+                                            {isEditing ? 'Update Banner' : 'Create Banner'}
+                                        </Button>
+                                    </Box>
                                 </Box>
-                            </Box>
-                        </form>
-                    </Card>
-                </Sheet>
+                            </form>
+                        </Card>
+                    </Sheet>
+                </Grid>
             </Grid>
-        </Grid>
+
+
+            <ConfirmModal
+                open={modalOpen}
+                onClose={handleModalClose}
+                confirm={handleConfirm}
+                action="update this banner"
+                confirmButtonText='Update'
+            />
+        </>
     )
 }

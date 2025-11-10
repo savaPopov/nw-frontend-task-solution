@@ -3,6 +3,7 @@ import InfiniteScroll from 'react-infinite-scroll-component'
 import React, { useCallback, useEffect, useState } from 'react'
 import { PageRequest } from '../services/dto/page.request.ts'
 import { PageResponse } from '../services/dto/page.response.ts'
+import { useToast } from '../context/toast/toast.context.tsx'
 
 export default function ScrollableCards<T>(props: {
     loadMore: (page: PageRequest) => Promise<PageResponse<T> | undefined>
@@ -14,6 +15,8 @@ export default function ScrollableCards<T>(props: {
     const [page, setPage] = useState<number>(0)
     const [hasMore, setHasMore] = useState<boolean>(true)
     const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true)
+    const [isLoading, setIsLoading] = useState<boolean>(false)
+    const { showToast } = useToast()
 
     const deleteItem = useCallback((id: string) => {
         setCards((prevCardsState) => {
@@ -27,36 +30,72 @@ export default function ScrollableCards<T>(props: {
         })
     }, [])
 
+    //TODO fix when users delete without loading all of the items to load properly the items 
+
     const loadBanners = useCallback(async () => {
-
-        const newCards = await props.loadMore({ page, pageSize: 6 })
-        if (!newCards) {
-            setHasMore(false)
-            return
+        if (isLoading === true) {
+            return;
         }
-        // + change to next page
-        setPage(newCards.pageNumber + 1)
-        console.log(`Total Pages ${page}`)
-        // check if there is next page
-        setHasMore(newCards.maxPageNumber > newCards.pageNumber)
-        console.log(`has more pages ? ${newCards.maxPageNumber > newCards.pageNumber}`)
 
-        // make data to elements
-        const newElements = newCards.content.map((value) => props.mapCard(value, deleteItem))
+        setIsLoading(true)
 
-        setCards((prevCards) => {
-
-            if (isInitialLoad) {
-                // fist render replace skeletons with real data
-                setIsInitialLoad(false)
-                return newElements
+        try {
+            const newCards = await props.loadMore({ page, pageSize: 6 })
+            if (!newCards) {
+                setHasMore(false)
+                return
             }
 
-            // next loads add to existing cards
-            return [...prevCards, ...newElements]
-        })
-        
-    }, [cards, page, deleteItem, props])
+
+            // + change to next page
+            setPage(newCards.pageNumber + 1)
+            console.log(`Total Pages ${page}`)
+            // check if there is next page
+            setHasMore(newCards.maxPageNumber > newCards.pageNumber)
+            console.log(`has more pages ? ${newCards.maxPageNumber > newCards.pageNumber}`)
+
+            // make data to elements
+            const newElements = newCards.content.map((value) => props.mapCard(value, deleteItem))
+
+
+
+            setCards((prevCards) => {
+
+                if (isInitialLoad) {
+                    // fist render replace skeletons with real data
+                    setIsInitialLoad(false)
+                    return newElements
+                }
+
+                // next loads add to existing cards
+                return [...prevCards, ...newElements]
+            })
+
+        } catch (error) {
+
+
+            const errorMessage = error instanceof Error
+                ? error.message
+                : 'Failed to load items'
+            showToast(errorMessage, 'error')
+            setHasMore(false)
+
+
+        } finally {
+            setIsLoading(false)
+        }
+    }, [cards, page, deleteItem, props, isLoading])
+
+    //load if user deletes too many without scrolling
+    useEffect(() => {
+        if (!isInitialLoad && cards.length < 3 && hasMore && !isLoading) {
+            console.log('auto-loading more items because card count is low')
+
+            loadBanners().catch((reason) => showToast(reason, 'error'))
+        }
+    }, [cards.length])
+
+
 
     useEffect(() => {
 
