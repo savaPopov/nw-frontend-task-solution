@@ -36,7 +36,7 @@ export default function NotFound() {
                 <Button 
                     variant="solid" 
                     color="primary" 
-                    onClick={() => navigate('/')}
+                    onClick={() => navigate('/banners')}
                 >
                     Go Home
                 </Button>

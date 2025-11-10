@@ -17,10 +17,10 @@ export default function BannerCard(props: { banner?: BannerDto; delete?: () => v
 
     return (
         <Grid
-            xl={12}
-            lg={12}
-            md={12}
-            sm={12}
+            xl={4}
+            lg={4}
+            md={4}
+            sm={6}
             xs={12}
         >
             <Card
@@ -28,7 +28,7 @@ export default function BannerCard(props: { banner?: BannerDto; delete?: () => v
                 sx={{
                     height: 400,
                     cursor: 'pointer',
-                    // width: '100%'
+                    width: '100%'
                 }}>
                 <CardOverflow>
                     <Image url={props.banner?.imageUrl} />

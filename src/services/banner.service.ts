@@ -133,7 +133,7 @@ class BannerService {
     async getBanners(page: PageRequest) {
         //defaults
         if (!page.page) page.page = 0
-        if (!page.pageSize) page.pageSize = 6
+        if (!page.pageSize) page.pageSize = 12
 
         let banners = this.listBanners()
         console.log('bannerservice returning banners:', banners)

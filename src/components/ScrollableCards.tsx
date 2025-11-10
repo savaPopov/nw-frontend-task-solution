@@ -1,4 +1,4 @@
-import { Grid } from '@mui/joy'
+import { Grid, Typography } from '@mui/joy'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import React, { useCallback, useEffect, useState } from 'react'
 import { PageRequest } from '../services/dto/page.request.ts'
@@ -10,7 +10,7 @@ export default function ScrollableCards<T>(props: {
     mapCard: (value: T, deleteItem: (id: string) => void) => React.JSX.Element
     skeletonMap: (_: any, index: number) => React.JSX.Element
 }) {
-    const initial = [...Array(6)].map(props.skeletonMap)
+    const initial = [...Array(12)].map(props.skeletonMap)
     const [cards, setCards] = useState<React.JSX.Element[]>(initial)
     const [page, setPage] = useState<number>(0)
     const [hasMore, setHasMore] = useState<boolean>(true)
@@ -40,7 +40,7 @@ export default function ScrollableCards<T>(props: {
         setIsLoading(true)
 
         try {
-            const newCards = await props.loadMore({ page, pageSize: 6 })
+            const newCards = await props.loadMore({ page, pageSize: 12 })
             if (!newCards) {
                 setHasMore(false)
                 return
@@ -88,7 +88,7 @@ export default function ScrollableCards<T>(props: {
 
     //load if user deletes too many without scrolling
     useEffect(() => {
-        if (!isInitialLoad && cards.length < 3 && hasMore && !isLoading) {
+        if (!isInitialLoad && cards.length < 9 && hasMore && !isLoading) {
             console.log('auto-loading more items because card count is low')
 
             loadBanners().catch((reason) => showToast(reason, 'error'))
@@ -107,24 +107,39 @@ export default function ScrollableCards<T>(props: {
     }
 
     return (
-        <Grid
-            container
-            spacing={2}
+
+        <InfiniteScroll
+            dataLength={cards.length}
+            next={loadMore}
+            hasMore={hasMore}
+            scrollableTarget="scroll"
+            loader={
+                <Typography level="h4" sx={{ textAlign: 'center', py: 2 }}>
+                    Loading...
+                </Typography>
+            }
+            endMessage={
+                <Typography
+                    level="body-md"
+                    sx={{
+                        textAlign: 'center',
+                        marginTop: '50px',
+                        fontWeight: 'bold'
+                    }}
+                >
+                    There are no more items available...
+                </Typography>
+            }
+            style={{ overflow: 'visible' }}
         >
-            <InfiniteScroll
-                dataLength={cards.length}
-                next={loadMore}
-                hasMore={hasMore}
-                scrollableTarget="scroll"
-                loader={<h4>Loading...</h4>}
-                endMessage={
-                    <p style={{ textAlign: 'center' }}>
-                        <b>There are no more items available...</b>
-                    </p>
-                }
+            <Grid
+                container
+                spacing={2}
+                columns={12}
             >
-                {...cards}
-            </InfiniteScroll>
-        </Grid>
+                {cards}
+            </Grid>
+        </InfiniteScroll >
+
     )
 }
