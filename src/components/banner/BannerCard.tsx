@@ -9,6 +9,12 @@ import Image from '../Image.tsx'
 export default function BannerCard(props: { banner?: BannerDto; delete?: () => void }) {
     const navigate = useNavigate()
 
+    const handleCardClick = () => {
+        if (props.banner?.id) {
+            navigate(`/banners/${props.banner.id}`)
+        }
+    }
+
     return (
         <Grid
             xl={12}
@@ -17,10 +23,13 @@ export default function BannerCard(props: { banner?: BannerDto; delete?: () => v
             sm={12}
             xs={12}
         >
-            <Card sx={{
-                height: 400,
-                // width: '100%'
-            }}>
+            <Card
+                onClick={handleCardClick}
+                sx={{
+                    height: 400,
+                    cursor: 'pointer',
+                    // width: '100%'
+                }}>
                 <CardOverflow>
                     <Image url={props.banner?.imageUrl} />
                 </CardOverflow>
@@ -57,7 +66,10 @@ export default function BannerCard(props: { banner?: BannerDto; delete?: () => v
                         variant="outlined"
                         size="sm"
                         sx={{ width: '20%', alignSelf: 'center' }}
-                        onClick={props.delete}
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            props.delete?.();
+                        }}
                     >
                         <Delete />
                     </IconButton>
@@ -65,7 +77,11 @@ export default function BannerCard(props: { banner?: BannerDto; delete?: () => v
                         variant="solid"
                         type={'button'}
                         size="md"
-                        onClick={() => navigate({ pathname: `/banners/edit/${props.banner!.id}` })}
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            navigate({ pathname: `/banners/edit/${props.banner!.id}` })
+                        }}
+                        // onClick={() => navigate({ pathname: `/banners/edit/${props.banner!.id}` })}
                         color="primary"
                         sx={{ width: '75%', alignSelf: 'center', fontWeight: 600 }}
                     >
