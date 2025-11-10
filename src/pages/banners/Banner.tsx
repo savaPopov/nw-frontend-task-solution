@@ -23,16 +23,20 @@ export default function Banner() {
     const navigate = useNavigate()
     const { showToast } = useToast()
     const [banner, setBanner] = useState<BannerDto | null>(null)
-    const [loading, setLoading] = useState(true)
+    // const [loading, setLoading] = useState(true)
     const [deleteModalOpen, setDeleteModalOpen] = useState(false)
 
     useEffect(() => {
         if (id) {
-         
+
             BannerService.getBanner(id)
                 .then(bannerData => {
                     if (bannerData) {
                         setBanner(bannerData)
+                    } else {
+                        showToast(`Banner with id ${id} not found!`, 'error')
+                        navigate('NotFound')
+                        return;
                     }
                 })
                 .catch(error => {
@@ -40,10 +44,10 @@ export default function Banner() {
                     showToast('Failed to load banner', 'error')
                 })
                 .finally(() => {
-                    setLoading(false)
+                    // setLoading(false)
                 })
         } else {
-            setLoading(false)
+            // setLoading(false)
         }
 
     }, [setPageData, id])

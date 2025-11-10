@@ -7,6 +7,7 @@ import { PageDataProvider } from './context/page-data/PageDataProvider.tsx'
 import Banner from './pages/banners/Banner.tsx'
 import BannerForm from './pages/banners/BannerForm.tsx'
 import { ToastProvider } from './context/toast/toast.provider.tsx'
+import NotFound from './pages/banners/NotFound.tsx'
 // import { ToastProvider } from './context/toast/toast.provider.tsx'
 
 
@@ -38,10 +39,14 @@ export default function App() {
                                     path="banners/create"
                                     element={<BannerForm />}
                                 />
+                                <Route
+                                    path="/"
+                                    element={<Navigate to={'/banners'} />}
+                                />
                                 {/*<Route path="contact" element={<Contact />} />*/}
                                 <Route
                                     path="*"
-                                    element={<Navigate to={'/banners'} />}
+                                    element={<NotFound />}
                                 />
                             </Route>
                         </Routes>

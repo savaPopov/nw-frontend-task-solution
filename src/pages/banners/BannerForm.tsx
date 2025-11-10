@@ -45,6 +45,10 @@ export default function BannerForm() {
                 if (banner) {
                     setValue("imageUrl", banner.imageUrl)
                     setValue("link", banner.link)
+                } else {
+                    showToast(`Banner with id ${id} not found!`, 'error')
+                    navigate('NotFound')
+                    return;
                 }
             })
         }
