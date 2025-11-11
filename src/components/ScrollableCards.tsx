@@ -4,13 +4,18 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { PageRequest } from '../services/dto/page.request.ts'
 import { PageResponse } from '../services/dto/page.response.ts'
 import { useToast } from '../context/toast/toast.context.tsx'
+import { useResponsiveLoading } from '../hooks/useResponsiveLoading.ts'
+
 
 export default function ScrollableCards<T>(props: {
     loadMore: (page: PageRequest) => Promise<PageResponse<T> | undefined>
     mapCard: (value: T, deleteItem: (id: string) => void) => React.JSX.Element
     skeletonMap: (_: any, index: number) => React.JSX.Element
 }) {
-    const initial = [...Array(12)].map(props.skeletonMap)
+
+    const { getOptimalPageSize, getAutoLoadThreshold, getScreenSize } = useResponsiveLoading()
+    const initialSkeletonCount = getOptimalPageSize('initial')
+    const initial = [...Array(initialSkeletonCount)].map(props.skeletonMap)
     const [cards, setCards] = useState<React.JSX.Element[]>(initial)
     const [page, setPage] = useState<number>(0)
     const [hasMore, setHasMore] = useState<boolean>(true)
@@ -23,6 +28,8 @@ export default function ScrollableCards<T>(props: {
             const i = prevCardsState.findIndex((card) => card.key == id)
             if (i != -1) {
                 const newCards = [...prevCardsState]
+                // console.log("NEW cards from delete item")
+                // console.log(newCards)
                 newCards.splice(i, 1)
                 return newCards
             }
@@ -32,15 +39,24 @@ export default function ScrollableCards<T>(props: {
 
     //TODO fix when users delete without loading all of the items to load properly the items 
 
-    const loadBanners = useCallback(async () => {
+    const loadBanners = useCallback(async (customPageSize?: number) => {
         if (isLoading === true) {
             return;
         }
 
         setIsLoading(true)
 
+
         try {
-            const newCards = await props.loadMore({ page, pageSize: 12 })
+            const pageSize = customPageSize || getOptimalPageSize('scroll')
+            const screenSize = getScreenSize()
+
+            console.log(`loading ${pageSize} items  for  ${screenSize}`)
+           
+            const newCards = await props.loadMore({ page, pageSize })
+
+            console.log(`${page} -page ,${pageSize} -pagesize newCards:`)
+            console.log(newCards)
             if (!newCards) {
                 setHasMore(false)
                 return
@@ -49,13 +65,17 @@ export default function ScrollableCards<T>(props: {
 
             // + change to next page
             setPage(newCards.pageNumber + 1)
-            console.log(`Total Pages ${page}`)
+            // console.log(`Total Pages ${page}`)
             // check if there is next page
             setHasMore(newCards.maxPageNumber > newCards.pageNumber)
-            console.log(`has more pages ? ${newCards.maxPageNumber > newCards.pageNumber}`)
+            // console.log(`has more pages ? ${newCards.maxPageNumber > newCards.pageNumber}`)
 
             // make data to elements
-            const newElements = newCards.content.map((value) => props.mapCard(value, deleteItem))
+            // const newElements = newCards.content.map((value) => props.mapCard(value, deleteItem))
+            const newElements = newCards.content.map((value) => {
+                // console.log('mapping value:', value)
+                return props.mapCard(value, deleteItem)
+            })
 
 
 
@@ -64,10 +84,16 @@ export default function ScrollableCards<T>(props: {
                 if (isInitialLoad) {
                     // fist render replace skeletons with real data
                     setIsInitialLoad(false)
+                    console.log('Intial load elements')
+                    console.log(newElements)
                     return newElements
                 }
-
+                // console.log('prevCards')
+                // console.log(prevCards)
+                // console.log('New elements')
+                // console.log(newElements)
                 // next loads add to existing cards
+
                 return [...prevCards, ...newElements]
             })
 
@@ -84,16 +110,23 @@ export default function ScrollableCards<T>(props: {
         } finally {
             setIsLoading(false)
         }
-    }, [cards, page, deleteItem, props, isLoading])
+    }, [page, deleteItem, props, isLoading, isInitialLoad, getOptimalPageSize, getScreenSize, isInitialLoad])
 
     //load if user deletes too many without scrolling
     useEffect(() => {
-        if (!isInitialLoad && cards.length < 9 && hasMore && !isLoading) {
-            console.log('auto-loading more items because card count is low')
+        if (!isInitialLoad && hasMore && !isLoading) {
+            const threshold = getAutoLoadThreshold()
+            if (cards.length < threshold) {
+                // console.log(`threshold:${threshold}`)
+                loadBanners().catch((reason) => showToast(reason, 'error'))
+                console.log('cards length' + cards.length)
+                console.log('auto-loading more items because card count is low')
+                console.log(cards)
 
-            loadBanners().catch((reason) => showToast(reason, 'error'))
+            }
+
         }
-    }, [cards.length])
+    }, [cards.length, isInitialLoad, hasMore, isLoading, loadBanners, getAutoLoadThreshold, getScreenSize, showToast])
 
 
 

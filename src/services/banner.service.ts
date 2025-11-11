@@ -133,7 +133,7 @@ class BannerService {
     async getBanners(page: PageRequest) {
         //defaults
         if (!page.page) page.page = 0
-        if (!page.pageSize) page.pageSize = 12
+        if (!page.pageSize) page.pageSize = 6
 
         let banners = this.listBanners()
         console.log('bannerservice returning banners:', banners)
@@ -153,7 +153,6 @@ class BannerService {
                 banners = banners.reverse()
             }
         }
-
         banners = banners.slice(page.page * page.pageSize, (page.page + 1) * page.pageSize)
 
 

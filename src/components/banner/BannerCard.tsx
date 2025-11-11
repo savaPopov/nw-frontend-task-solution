@@ -19,7 +19,7 @@ export default function BannerCard(props: { banner?: BannerDto; delete?: () => v
         <Grid
             xl={4}
             lg={4}
-            md={4}
+            md={6}
             sm={6}
             xs={12}
         >
