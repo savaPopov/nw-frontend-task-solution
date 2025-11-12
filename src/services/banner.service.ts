@@ -188,8 +188,9 @@ class BannerService {
     async createBanner(banner: BannerDto) {
         const banners = this.listBanners()
         const newBanner = {
+            id: this.getNextId(),
             ...banner,
-            id: this.getNextId()
+
         }
         this.saveBanners([newBanner, ...banners])
         return newBanner

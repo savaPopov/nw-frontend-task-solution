@@ -59,6 +59,20 @@ export default function BannerCard(props: { banner?: BannerDto; delete?: () => v
                                 {props.banner?.link}
                             </Skeleton>
                         </Typography>
+
+                        <Typography
+                            level="title-lg"
+                            sx={{
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                width: '100%',
+                            }}
+                        >
+
+                            {props.banner?.id}
+
+                        </Typography>
                     </Box>
                 </Box>
                 <CardActions>
